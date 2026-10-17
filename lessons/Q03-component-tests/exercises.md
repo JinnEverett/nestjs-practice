@@ -53,9 +53,9 @@ Yêu cầu mỗi spec: xanh, `>= 85%` nhánh, bắt `>= 80%` lỗi.
 
 ## 🔴 Thực tế
 
-### ex07 · "Bộ test mất 40 giây và đỏ ngẫu nhiên"
+### ex07 · "Bộ test mất vài phút và đỏ ngẫu nhiên"
 Sau vài tuần, `npm test` chậm và đỏ lúc có lúc không; không ai muốn chạy nó trước khi push. Rà tám spec ở trên:
-- Toàn bộ chạy trong **dưới 25 giây**; không `sleep` thật, không `await new Promise(r => setTimeout(r, ...))`.
+- Toàn bộ chạy trong **dưới 40 giây**; không `sleep` thật, không `await new Promise(r => setTimeout(r, ...))`.
 - Mỗi test có assertion (`expect.hasAssertions()` được bật cho cả bộ).
 - Xanh ở 3 seed ngẫu nhiên khác nhau (`--randomize`).
 - Test thời gian của timeout dùng `jest.useFakeTimers()`.

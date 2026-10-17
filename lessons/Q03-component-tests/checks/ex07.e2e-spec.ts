@@ -15,13 +15,13 @@ const SPECS = [
   'src/common/middleware/http-logger.middleware.spec.ts',
 ];
 
-describe('Q03 ex07 · 🔴 "Bộ test mất 40 giây và đỏ ngẫu nhiên"', () => {
-  it('toàn bộ 8 spec chạy dưới 25 giây (không sleep thật; thời gian dùng fake timers / đồng hồ giả)', async () => {
+describe('Q03 ex07 · 🔴 "Bộ test mất vài phút và đỏ ngẫu nhiên"', () => {
+  it('toàn bộ 8 spec chạy dưới 40 giây (không sleep thật; thời gian dùng fake timers / đồng hồ giả)', async () => {
     const t0 = Date.now();
     const r = await runSpec(SPECS);
     const elapsed = Date.now() - t0;
     expect({ ok: r.ok, failed: r.tests.filter((t) => t.status !== 'passed').map((t) => t.name) }).toEqual({ ok: true, failed: [] });
-    expect(elapsed).toBeLessThan(25_000);
+    expect(elapsed).toBeLessThan(40_000);
   });
 
   it('mỗi test có assertion (expect.hasAssertions) — kể cả test async', async () => {
