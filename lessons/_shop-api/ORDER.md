@@ -18,6 +18,7 @@ Module không có thư mục `solutions/` (hoặc không nằm trong danh sách)
 - C11
 - C12
 - Q03
+- Q04
 
 ## Database
 - B01
@@ -75,4 +76,4 @@ Module không có thư mục `solutions/` (hoặc không nằm trong danh sách)
 - CAP
 
 > Q03 chỉ overlay các spec tham chiếu (`*.spec.ts`, để chạy được `--solutions`); spec nằm trong `src/` nên `tsc --noEmit` của module sau cũng biên dịch chúng: module sau đổi chữ ký các thành phần Q01/Q03 thì phải overlay lại spec tương ứng.
-> Không overlay: Q04 (chiến lược, người học viết test), B08 (Prisma — dự án so sánh riêng), B09 (Mongo, tùy chọn), D01–D08 (thiết kế, thư mục `designs/`).
+> Q04 overlay các tệp `src/demo/*` đã sửa, `low-stock` và route của nó. Không overlay: B08 (Prisma — dự án so sánh riêng), B09 (Mongo, tùy chọn), D01–D08 (thiết kế, thư mục `designs/`).
