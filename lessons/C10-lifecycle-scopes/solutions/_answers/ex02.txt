@@ -1,0 +1,11 @@
+Db:constructor
+Repo:constructor
+Service:constructor
+Db:onModuleInit
+Service:onModuleInit
+Db:onApplicationBootstrap
+Service:onApplicationBootstrap
+Service:onModuleDestroy
+Db:onModuleDestroy
+Service:onApplicationShutdown
+Db:onApplicationShutdown
