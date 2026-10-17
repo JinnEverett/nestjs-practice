@@ -42,7 +42,7 @@ Yêu cầu: spec xanh, `>= 80%` nhánh, bắt `>= 80%` lỗi cài sẵn.
 Yêu cầu: bắt `>= 80%` lỗi cài sẵn.
 
 ### ex05 · 🔮 Đoán kết quả test
-Ghi dự đoán vào `shop-api/answers/ex05.txt` (tạo thư mục nếu chưa có; bộ chấm đọc file này), 8 dòng, mỗi dòng `tN: pass` hoặc `tN: fail`, **trước khi chạy**:
+Ghi dự đoán vào `lessons/Q01-unit-test/answers/ex05.txt`, 8 dòng, mỗi dòng `tN: pass` hoặc `tN: fail`, **trước khi chạy**:
 ```ts
 describe('mock semantics', () => {
   const fn = jest.fn();
