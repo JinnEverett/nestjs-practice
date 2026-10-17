@@ -42,6 +42,13 @@ else
   cp "$dir/checks/ex$nn.e2e-spec.ts" "$dst/"
   pattern="test/_checks/ex$nn"
 fi
+# bài đoán (🔮): lời đoán của người học (hoặc đáp án mẫu khi --solutions) → test/_checks/answers/
+mkdir -p "$dst/answers"
+if [ "$src" = solutions ]; then
+  [ -d "$dir/solutions/_answers" ] && cp -r "$dir/solutions/_answers/." "$dst/answers/"
+else
+  [ -d "$dir/answers" ] && cp -r "$dir/answers/." "$dst/answers/"
+fi
 # file phụ trợ của riêng bài (fixture dùng chung cho nhiều check)
 for f in "$dir"/checks/_*.ts; do [ -f "$f" ] && cp "$f" "$dst/"; done
 
