@@ -1,0 +1,8 @@
+{
+  // T06/T07: bật decorator kiểu "legacy" giống hệt NestJS (tsconfig của Nest có 2 cờ này).
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  }
+}

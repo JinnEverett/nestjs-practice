@@ -1,0 +1,9 @@
+A Error true true
+B NamedError: lỗi
+C {}
+D 0
+E trong
+F {"code":"E_CODE"}
+G Error: dòng 1
+H 2 nhiều lỗi
+I function

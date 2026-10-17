@@ -1,0 +1,9 @@
+A timeout
+D nextTick
+E promise
+C immediate
+B timeout lồng
+G nextTick
+F promise
+I promise 2
+H nextTick từ microtask

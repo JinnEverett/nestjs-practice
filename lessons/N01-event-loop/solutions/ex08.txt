@@ -1,0 +1,9 @@
+1 main bắt đầu
+9 sync cuối
+7 nextTick ngoài
+2 main sau await #1
+8 promise ngoài
+4 main sau await #2
+6 main xong
+3 nextTick trong main
+5 immediate

@@ -1,0 +1,8 @@
+a.cjs chạy
+A true 1
+B {"version":1}
+C {"name":"c"}
+D string object
+F y thấy x.loaded = false
+E x thấy y.loaded = true
+G x

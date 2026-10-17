@@ -1,0 +1,13 @@
+C {"value":1,"done":false}
+A nhận 5
+D {"value":10,"done":false}
+B finally
+E {"value":"xong","done":true}
+F {"done":true}
+G 1
+B finally
+A nhận undefined
+B finally
+H 1,NaN
+I x,r
+J 0 1 99 true

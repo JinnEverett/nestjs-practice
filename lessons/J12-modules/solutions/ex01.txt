@@ -1,0 +1,8 @@
+log.js chạy
+counter.js chạy
+main bắt đầu
+A 0
+B 1 1
+C true 1
+D TypeError
+E undefined string

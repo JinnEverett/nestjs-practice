@@ -1,0 +1,10 @@
+A name {"name":"An"} 1
+B TypeError
+C {"value":"An","writable":true,"enumerable":true,"configurable":true}
+D 1 {"visible":1} x
+E 2 symbol
+F false true
+G TypeError
+H 2 false
+I đọc bấtKỳ
+J true true 0

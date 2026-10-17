@@ -1,0 +1,10 @@
+A 2
+C x2
+D x2
+F handled r
+G lồng
+H thenable
+I lần 1
+J undefined
+K 0
+L 5

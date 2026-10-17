@@ -1,0 +1,10 @@
+A số chuỗi 2
+B undefined object
+C 5
+D misp
+E [object Object]
+F {} [["a",1]]
+G {"value":10,"done":false} {"value":20,"done":false} {"done":true}
+H a3,b2,c1
+I TypeError
+J 2

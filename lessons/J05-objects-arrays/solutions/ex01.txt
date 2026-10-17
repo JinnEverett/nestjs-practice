@@ -1,0 +1,9 @@
+A 2
+B false true
+C An 2 HN
+D Gốc
+E Đổi
+F string false null
+G true true NaN
+H 0
+I 2

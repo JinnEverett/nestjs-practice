@@ -1,0 +1,17 @@
+{
+  "name": "nest-lessons",
+  "private": true,
+  "type": "module",
+  "description": "Runner cho bài Tier J/T/N: node --test + tsc",
+  "scripts": {
+    "check": "bash check.sh"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}

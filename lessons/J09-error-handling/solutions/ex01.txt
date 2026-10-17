@@ -1,0 +1,11 @@
+A finally chạy
+B try
+C finally
+D cleanup
+E bọc gốc
+F string false
+G TypeError true
+H catch không cần biến
+I 1
+J inner finally
+K RangeError

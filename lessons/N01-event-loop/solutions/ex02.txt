@@ -1,0 +1,6 @@
+A đang ở callback I/O
+F cuối callback
+D nextTick
+E promise
+C immediate
+B timeout 0

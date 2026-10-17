@@ -1,0 +1,6 @@
+A_reject_khong_bat: code=1 stdout="" stderrCoLoi=true
+B_co_listener_unhandled: code=0 stdout="đã xử lý" stderrCoLoi=false
+C_uncaught_co_listener: code=0 stdout="bắt được C bùm | vẫn sống" stderrCoLoi=false
+D_exitCode_roi_cho_loop: code=3 stdout="muộn" stderrCoLoi=false
+E_exit_giua_chung: code=5 stdout="exit 5" stderrCoLoi=false
+F_beforeExit_hoi_sinh: code=0 stdout="xong việc chính | hồi sinh" stderrCoLoi=false

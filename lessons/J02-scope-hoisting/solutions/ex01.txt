@@ -1,0 +1,10 @@
+A undefined
+B ReferenceError
+C hi
+D undefined
+E TypeError
+F 1
+G block
+H 1
+I 3
+J undefined

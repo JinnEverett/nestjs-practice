@@ -1,0 +1,9 @@
+A ["a","b"]
+B Error lỗi-b
+C ["fulfilled","rejected"]
+D "nhanh"
+E Error lỗi-nhanh
+F "y"
+G AggregateError All promises were rejected
+H true
+I true

@@ -1,0 +1,11 @@
+S1
+A1
+S2 true
+B1
+S3
+A2
+B-catch b-lỗi
+X 42
+A-then A-ret
+Y r
+Z timer

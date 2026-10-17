@@ -1,0 +1,9 @@
+node_modules/
+.run/
+.build/
+.shop-ref/
+/shop-api/
+dist/
+coverage/
+*.log
+.env

@@ -1,0 +1,8 @@
+A child undefined
+B child con
+C 12 12
+D 2
+E S
+F true
+G TypeError
+H x

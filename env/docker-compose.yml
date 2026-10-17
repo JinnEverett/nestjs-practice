@@ -1,0 +1,37 @@
+# Môi trường luyện NestJS. Chạy: docker compose -f env/docker-compose.yml up -d
+# - Postgres cổng 5434 (5433 đã dùng cho workspace SQL), TZ = UTC để mọi timestamptz nhất quán.
+# - Redis cổng 6380, bật từ B07 (cache) và P03 (BullMQ). Khởi động sẵn cũng không tốn nhiều RAM.
+# - RabbitMQ chỉ cần ở Tier M (M06, M08): docker compose -f env/docker-compose.yml --profile broker up -d
+name: nest-practice
+services:
+  postgres:
+    image: postgres:18
+    container_name: nest-practice-pg
+    ports: ["5434:5432"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: UTC
+      PGTZ: UTC
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:8
+    container_name: nest-practice-redis
+    ports: ["6380:6379"]
+    command: ["redis-server", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "allkeys-lru"]
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: nest-practice-rabbit
+    profiles: ["broker"]
+    ports: ["5673:5672", "15673:15672"]
+
+volumes:
+  pgdata:

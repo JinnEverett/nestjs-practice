@@ -1,0 +1,8 @@
+A undefined
+B timer
+C timer
+D TIMER
+E Timer
+F TypeError
+G obj
+H o2

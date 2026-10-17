@@ -1,0 +1,11 @@
+A Mực kêu gâu
+B true false true
+C true true
+D true true
+E true
+F function function
+G undefined
+H hi An n
+I 42 no
+J TypeError
+K Mực nhặt bóng

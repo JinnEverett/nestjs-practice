@@ -1,0 +1,8 @@
+A 3 1
+B 11,12,13
+C 101
+D Chào khách Chào An Hi
+E 1
+F 120 undefined
+G 2 undefined
+H outer

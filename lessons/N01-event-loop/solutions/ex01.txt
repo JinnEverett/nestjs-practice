@@ -1,0 +1,9 @@
+1 sync đầu
+9 sync cuối
+5 promise
+6 queueMicrotask
+4 nextTick
+7 nextTick #2
+8 promise trong nextTick
+3 immediate
+2 timeout 20ms

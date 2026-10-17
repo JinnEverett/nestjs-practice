@@ -1,0 +1,8 @@
+A trước
+B /api
+C router.use
+D items #1
+F items #2
+I lỗi: boom
+A sau
+J status 500

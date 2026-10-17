@@ -1,0 +1,12 @@
+{
+  "name": "shop-utils",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "require": "./src/index.cjs"
+    },
+    "./errors": "./src/errors.js"
+  }
+}

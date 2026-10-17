@@ -1,0 +1,19 @@
+{
+  // Cấu hình TS chung cho bài Tier T/N. Bài nào cần thêm (vd. decorators ở T06/T07)
+  // thì đặt tsconfig.json riêng trong thư mục bài với "extends": "../tsconfig.base.json".
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "types": ["node"]
+  }
+}

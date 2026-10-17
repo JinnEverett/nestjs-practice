@@ -1,0 +1,5 @@
+{
+  "app": { "name": "shop-api", "port": 3000 },
+  "db": { "host": "localhost", "port": 5434, "pool": { "max": 10 } },
+  "features": ["vouchers", "reviews"]
+}
