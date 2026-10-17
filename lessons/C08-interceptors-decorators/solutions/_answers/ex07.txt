@@ -1,0 +1,14 @@
+middleware
+guard:global
+guard:controller
+guard:route
+int:global:before
+int:controller:before
+int:route:before
+pipe:global
+pipe:route
+pipe:param
+handler
+int:route:after
+int:controller:after
+int:global:after
