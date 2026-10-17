@@ -50,7 +50,7 @@ Quy tắc giá (từ C03): phí ship `30000`, miễn phí khi tổng tiền hàn
 ## 5. Dữ liệu và hạ tầng
 - Trước B01: dữ liệu **trong bộ nhớ** (repository in-memory). Từ B01: Postgres `nest-practice-pg` cổng **5434**, DB `shop_dev` (chạy tay), `shop_test` (check), `shop_xs/s/m` (B03). `DATABASE_URL` mặc định cho test: `postgres://postgres:postgres@localhost:5434/shop_test`. Test dùng `synchronize` hoặc chạy migration (B03+); `_db.ts` có `resetDatabase(app)`.
 - Redis `localhost:6380` (từ B07), RabbitMQ `5673` (profile `broker`, Tier M).
-- Cấu hình qua env (C09): `PORT`, `NODE_ENV`, `DATABASE_URL`, `REDIS_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `ADMIN_API_KEY`, `DEBUG_ENDPOINTS`. Giá trị mặc định chỉ cho `NODE_ENV !== 'production'`.
+- Cấu hình qua env (C09): `PORT`, `NODE_ENV`, `DATABASE_URL`, `REDIS_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `ADMIN_API_KEY`, `DEBUG_ENDPOINTS`, `SHIPPING_FEE` (mặc định 30000), `FREE_SHIPPING_THRESHOLD` (mặc định 500000). Giá trị mặc định chỉ cho `NODE_ENV !== 'production'`; production thiếu bí mật hoặc `DEBUG_ENDPOINTS=true` thì **không khởi động**. Namespace `registerAs`: `app`, `database`, `redis`, `auth`, `features`, `pricing` (token `ConfigType<typeof xConfig>`, `xConfig.KEY`; file ở `src/config/`).
 
 ## 6. Bản đồ module → thứ được thêm (tóm tắt, chi tiết nằm ở `exercises.md` từng bài)
 

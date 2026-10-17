@@ -1,0 +1,9 @@
+/dist
+/node_modules
+/coverage
+/test/_checks
+# Cấu hình thật không bao giờ vào git; chỉ .env.example (mẫu, không có bí mật thật)
+.env
+.env.*
+!.env.example
+*.log
