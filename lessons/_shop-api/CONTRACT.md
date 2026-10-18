@@ -50,7 +50,7 @@ Quy tắc giá (từ C03): phí ship `30000`, miễn phí khi tổng tiền hàn
 ## 5. Dữ liệu và hạ tầng
 - Trước B01: dữ liệu **trong bộ nhớ** (repository in-memory). Từ B01: Postgres `nest-practice-pg` cổng **5434**, DB `shop_dev` (chạy tay), `shop_test` (check), `shop_xs/s/m` (B03). `DATABASE_URL` mặc định cho test: `postgres://postgres:postgres@localhost:5434/shop_test`. Test dùng `synchronize` hoặc chạy migration (B03+); `_db.ts` có `resetDatabase(app)`.
 - Redis `localhost:6380` (từ B07), RabbitMQ `5673` (profile `broker`, Tier M).
-- Cấu hình qua env (C09): `PORT`, `NODE_ENV`, `DATABASE_URL`, `REDIS_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `ADMIN_API_KEY`, `DEBUG_ENDPOINTS`. Giá trị mặc định chỉ cho `NODE_ENV !== 'production'`.
+- Cấu hình qua env (C09): `PORT`, `NODE_ENV`, `DATABASE_URL`, `REDIS_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `ADMIN_API_KEY`, `DEBUG_ENDPOINTS`, `SHIPPING_FEE` (mặc định 30000), `FREE_SHIPPING_THRESHOLD` (mặc định 500000). Giá trị mặc định chỉ cho `NODE_ENV !== 'production'`; production thiếu bí mật hoặc `DEBUG_ENDPOINTS=true` thì **không khởi động**. Namespace `registerAs`: `app`, `database`, `redis`, `auth`, `features`, `pricing` (token `ConfigType<typeof xConfig>`, `xConfig.KEY`; file ở `src/config/`).
 
 ## 6. Bản đồ module → thứ được thêm (tóm tắt, chi tiết nằm ở `exercises.md` từng bài)
 
@@ -112,6 +112,26 @@ Quy tắc giá (từ C03): phí ship `30000`, miễn phí khi tổng tiền hàn
 | M08 | Outbox + idempotent consumer + saga |
 | M09 | Monorepo/shared lib |
 | CAP | Hoàn thiện, Docker + CI + báo cáo bench |
+
+### 6b. Bề mặt do nhóm `core` thêm (C02–C12, Q01–Q04) — module sau nên tái dùng, đừng tạo song song
+
+| Thứ | Đường dẫn / tên | Từ |
+|---|---|---|
+| Repository sản phẩm qua token | `src/products/products.repository.ts` → `PRODUCTS_REPOSITORY` (Symbol), `interface ProductsRepository` (`findAll, findById, findBySku, insert, update, delete`, tất cả `async`); cài in-memory ở `in-memory-products.repository.ts`. B01 thay bằng bản TypeORM **cùng interface** | C03 |
+| Tính tiền | `src/pricing/` → `PricingService.quote(lines, code?)`, `PRICING_RULES`, `DEFAULT_PRICING_RULES`, `PricingModule.forRoot/forRootAsync({ isGlobal })` | C03, C04 |
+| Đơn hàng | `src/orders/` → `OrdersService`, tokens `NOW`, `ORDER_READER`, `ORDER_NOTIFIER` (`orders.tokens.ts`); `userId` tạm là `1` đến A02 | C03 |
+| Sổ sản phẩm đã vào đơn | `src/product-usage/ProductUsageRegistry` (RAM). B02+ nên thay bằng truy vấn DB và cập nhật `ProductsService.remove` | C04 |
+| Giờ | `ClockService`/`SharedModule` (`@Global`); mọi nơi cần "bây giờ" phải đi qua đây | C01, C04 |
+| Validation | `ValidationPipe` toàn cục trong `configureApp` (`whitelist`, `forbidNonWhitelisted`, `transform`, `exceptionFactory` → `ValidationFailedException`); `ParseIdPipe`, `ParseSkuPipe` ở `src/common/pipes/` | C05, C06 |
+| Lỗi | `AllExceptionsFilter` (đăng ký bằng `APP_FILTER`), `DomainError` + `ProductNotFoundError`, `OutOfStockError`, `DuplicateSkuError` (`src/common/errors/domain-errors.ts`). Lỗi domain mới: thêm class + một dòng vào `STATUS_BY_DOMAIN_CODE` | C06 |
+| Xác thực tạm | `ApiKeyGuard`, `@AdminOnly()` (`src/common/decorators/admin-only.decorator.ts`, gồm metadata `IS_ADMIN_ONLY` và tài liệu OpenAPI); A02 thay bằng `JwtAuthGuard` + `@Public()` | C07, C08 |
+| Middleware | `RequestIdMiddleware` (`req.headers['x-request-id']` luôn có), `httpLogger`, `noStore` | C07 |
+| Interceptor | `TimingInterceptor` (`Server-Timing`), `TimeoutInterceptor` + `@Timeout(ms)`, `GetCacheInterceptor` + `@CacheTtl(s)` (cache RAM, header `X-Cache`, ghi thành công xóa sạch; B07 thay bằng Redis), `PaginationLinksInterceptor` (header `Link`) | C08, C11 |
+| Cấu hình | `ConfigModule` toàn cục + `validateEnv` (`src/config/env.ts`); namespace `appConfig, databaseConfig, redisConfig, authConfig, featuresConfig, pricingConfig` (`src/config/*.config.ts`, token `xConfig.KEY`). Biến mới phải thêm vào `Env`, `.env.example` | C09 |
+| OpenAPI | `setupSwagger` trong `configureApp` (`/docs`, `/docs-json`), `ApiProblems(...)`, `ApiPaginatedResponse(Model)`, `ApiDeprecated(...)`, `ProblemDetailsDto`; `openapi.json` ở gốc `shop-api` phải khớp `/docs-json` (module đổi API cần xuất lại: `npx ts-node scripts/export-openapi.ts`). `PartialType` lấy từ `@nestjs/swagger` | C11 |
+| Upload / export | `UploadsModule`: token `UPLOAD_DIR`, ảnh sản phẩm `POST|GET|DELETE /v1/products/:id/image`, `GET /v1/exports/products.csv` (stream); `csvCell` chống CSV injection | C12 |
+| Route nội bộ | `/v1/_trace`, `/v1/_scope`, `/v1/_reports/summary`, `/v1/legacy/**` (`@ApiExcludeController`) | C08–C11 |
+| Spec nằm trong `src/` | Q01, Q03, Q04 overlay các `*.spec.ts`; `tsc --noEmit` của module sau cũng biên dịch chúng: đổi chữ ký service/guard/interceptor thì overlay lại spec tương ứng | Q01, Q03, Q04 |
 
 ## 7. Sổ đăng ký testkit (cập nhật khi thêm helper)
 

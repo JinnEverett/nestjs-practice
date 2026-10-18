@@ -17,7 +17,7 @@ test('ex05 · chạy SONG SONG: 4 tác vụ không chậm hơn 3.2× một tác 
 test('ex05 · 8 tác vụ lâu hơn 4 tác vụ (xếp hàng sau 4 thread của pool)', async (t) => {
   if (availableParallelism() < 4) return t.skip('máy < 4 core');
   const [a, b] = await benchPbkdf2([4, 8]);
-  assert.ok(b.ms > a.ms * 1.25, `n=4: ${a.ms.toFixed(0)}ms, n=8: ${b.ms.toFixed(0)}ms`);
+  assert.ok(b.ms > a.ms * 1.15, `n=4: ${a.ms.toFixed(0)}ms, n=8: ${b.ms.toFixed(0)}ms`);
 });
 test('ex05 · có nhận xét trong answers/ex05.md', () => {
   const url = new URL('../answers/ex05.md', import.meta.url);

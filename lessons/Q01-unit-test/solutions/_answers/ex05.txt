@@ -1,0 +1,8 @@
+t1: pass
+t2: pass
+t3: fail
+t4: pass
+t5: fail
+t6: pass
+t7: fail
+t8: fail

@@ -1,0 +1,10 @@
+1: unit
+2: e2e
+3: unit
+4: e2e
+5: none
+6: component
+7: e2e
+8: none
+9: e2e
+10: component
