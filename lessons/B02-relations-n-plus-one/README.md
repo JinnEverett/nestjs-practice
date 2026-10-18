@@ -58,7 +58,7 @@ Trang danh mục 1000 mục là 1001 truy vấn. Dấu hiệu: số truy vấn *
 **JOIN không miễn phí.** Nạp hai quan hệ to-many cùng lúc (`children` và `products`) bằng một JOIN trả về *tích Descartes*: 30 con × 30 sản phẩm = 900 dòng cho mỗi danh mục gốc (18 000 dòng so với 1 220 dòng nếu lấy riêng). `relationLoadStrategy: 'query'` (mỗi quan hệ một truy vấn) tránh được điều đó, nhưng đo ra chậm 2 giây ở 1000 danh mục (chưa rõ nguyên nhân). Không có đáp án chung: đo trên dữ liệu của bạn.
 
 ## 5. Postgres không tự tạo index cho khóa ngoại
-Khóa chính và UNIQUE có index; **khóa ngoại thì không**. Thiếu index ở cột khóa ngoại làm "lấy các sản phẩm của danh mục X", JOIN, và cả việc kiểm tra `RESTRICT` khi xóa cha phải quét cả bảng con. Thêm `@Index('idx_products_category', ['categoryId'])`. Ngoại lệ đã bù: `UNIQUE (order_id, product_id)` phủ truy vấn theo `order_id` (cột đầu của index), khóa chính ghép `(product_id, tag_id)` phủ `product_id`. Bảng nối `product_tags` còn thiếu index cho `tag_id` mà TypeORM không tự thêm; sửa bằng migration ở B03.
+Khóa chính và UNIQUE có index; **khóa ngoại thì không**. Thiếu index ở cột khóa ngoại làm "lấy các sản phẩm của danh mục X", JOIN, và cả việc kiểm tra `RESTRICT` khi xóa cha phải quét cả bảng con. Thêm `@Index('idx_products_category', ['categoryId'])`. Ngoại lệ đã bù: `UNIQUE (order_id, product_id)` phủ truy vấn theo `order_id` (cột đầu của index), khóa chính ghép `(product_id, tag_id)` phủ `product_id`. Riêng bảng nối `product_tags`, TypeORM **tự** tạo index cho cả `product_id` lẫn `tag_id` (tên băm `IDX_…`; đã kiểm tra trên migration sinh tự động ở B03).
 
 ## 6. Race condition trên quan hệ
 - Tạo danh mục cùng slug: UNIQUE phân xử (`23505` → `409 duplicate-slug`), không "kiểm tra rồi chèn".

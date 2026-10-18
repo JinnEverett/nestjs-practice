@@ -37,7 +37,9 @@ export async function resetDatabase(app: INestApplication): Promise<void> {
 export async function rebuildSchema(app: INestApplication): Promise<void> {
   const ds = dataSourceOf(app);
   await ds.dropDatabase();
-  await ds.synchronize();
+  // Từ B03 schema do migration quản lý (synchronize tắt); trước đó thì dùng synchronize.
+  if (ds.migrations.length > 0) await ds.runMigrations();
+  else await ds.synchronize();
 }
 
 /** Mã SQLSTATE của lỗi Postgres khi `promise` bị từ chối; `undefined` nếu promise thành công. */

@@ -99,7 +99,7 @@ describe('B02 ex04 · Quan hệ 1-1 và khóa ngoại phía đơn hàng', () => 
       `SELECT c.conrelid::regclass::text AS tbl, a.attname AS col
          FROM pg_constraint c
          JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = c.conkey[1]
-        WHERE c.contype = 'f' AND c.connamespace = 'public'::regnamespace AND c.conrelid <> 'product_tags'::regclass
+        WHERE c.contype = 'f' AND c.connamespace = 'public'::regnamespace
           AND NOT EXISTS (SELECT 1 FROM pg_index i WHERE i.indrelid = c.conrelid AND i.indkey[0] = c.conkey[1])`,
     )) as { tbl: string; col: string }[];
     expect(missing).toEqual([]);

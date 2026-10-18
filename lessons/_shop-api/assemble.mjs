@@ -39,7 +39,7 @@ for (const id of order.slice(0, idx + 1)) {
   if (!sol || !existsSync(sol)) continue;
   cpSync(sol, ref, {
     recursive: true,
-    filter: (s) => !/[\\/]DEPS$/.test(s) && !(dirname(s) === sol && s.endsWith('.md')),
+    filter: (s) => !/[\\/](DEPS|NPM_SCRIPTS)$/.test(s) && !(dirname(s) === sol && s.endsWith('.md')),
   });
   const depsFile = join(sol, 'DEPS');
   if (existsSync(depsFile)) {
@@ -49,6 +49,16 @@ for (const id of order.slice(0, idx + 1)) {
       const group = m[1] === 'dev' ? 'devDependencies' : 'dependencies';
       pkg[group] ??= {};
       pkg[group][m[2]] = m[3];
+    }
+  }
+  // solutions/NPM_SCRIPTS: mỗi dòng "tên-script  lệnh" được gộp vào package.json > scripts (giống người học tự thêm script vào package.json)
+  const scriptsFile = join(sol, 'NPM_SCRIPTS');
+  if (existsSync(scriptsFile)) {
+    for (const line of readFileSync(scriptsFile, 'utf8').split(/\r?\n/)) {
+      const m = /^\s*([^\s#]\S*)\s+(.+?)\s*$/.exec(line);
+      if (!m) continue;
+      pkg.scripts ??= {};
+      pkg.scripts[m[1]] = m[2];
     }
   }
   applied.push(id);

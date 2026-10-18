@@ -36,7 +36,7 @@ Quy ước chung: khóa ngoại đặt tên `fk_<bảng>_<ý>`; ràng buộc `uq
 ### ex04 · 1-1 và khóa ngoại phía đơn hàng
 - `user_profiles (user_id integer PK, phone varchar(20) NULL, address varchar(255) NULL, updated_at timestamptz)` với `fk_user_profiles_user` (`CASCADE`). Metadata ORM phải thể hiện quan hệ **one-to-one**, bên sở hữu là `UserProfile`, join qua `user_id`.
 - Khóa ngoại có tên: `fk_orders_user` (`RESTRICT`), `fk_order_items_order` (`CASCADE`), `fk_order_items_product` (`RESTRICT`), `fk_payments_order` (`RESTRICT`). Sai tham chiếu → `23503`; xóa dòng còn bị tham chiếu (`RESTRICT`) → **`23001`**.
-- **Mọi khóa ngoại phải có index** với cột đầu là cột khóa ngoại (trừ `product_tags.tag_id`, để B03). Gợi ý: `UNIQUE (order_id, product_id)` đã phủ `order_id`.
+- **Mọi khóa ngoại phải có index** với cột đầu là cột khóa ngoại (kể cả hai cột của bảng nối `product_tags`, mà TypeORM tự tạo). Gợi ý: `UNIQUE (order_id, product_id)` đã phủ `order_id`.
 - `DELETE /v1/products/:id` cho sản phẩm đã nằm trong `order_items` → `409` problem+json (không phải 500, sản phẩm còn nguyên).
 
 ### ex05 · `?include=` trên chi tiết sản phẩm

@@ -150,11 +150,24 @@ Quy tắc giá (từ C03): phí ship `30000`, miễn phí khi tổng tiền hàn
 
 | Thứ | Đường dẫn / tên | Ghi chú |
 |---|---|---|
-| Quan hệ ORM | `ProductEntity.category` (n-1) / `.tags` (n-n, bên sở hữu `@JoinTable` → `product_tags`); `CategoryEntity.parent/children/products`; `UserEntity.profile` (1-1) / `.orders`; `OrderEntity.user/items/payments`; `OrderItemEntity.order/product`; `PaymentEntity.order` | kiểu quan hệ viết `Relation<T>` + `import type`; khóa ngoại đặt tên `fk_<bảng>_<ý>`; mọi cột khóa ngoại có index (trừ `product_tags.tag_id`, B03) |
+| Quan hệ ORM | `ProductEntity.category` (n-1) / `.tags` (n-n, bên sở hữu `@JoinTable` → `product_tags`); `CategoryEntity.parent/children/products`; `UserEntity.profile` (1-1) / `.orders`; `OrderEntity.user/items/payments`; `OrderItemEntity.order/product`; `PaymentEntity.order` | kiểu quan hệ viết `Relation<T>` + `import type`; khóa ngoại đặt tên `fk_<bảng>_<ý>`; mọi cột khóa ngoại có index (bảng nối `product_tags`: TypeORM tự tạo `IDX_…` cho cả hai cột) |
 | Bảng mới | `tags (id, name)`, `product_tags (product_id, tag_id)`, `user_profiles (user_id PK/FK, phone, address, updated_at)` | `ORM_ENTITIES` thêm `TagEntity`, `UserProfileEntity` |
 | API mới | `POST|GET|DELETE /v1/categories[/:id]` (`?include=children,products`), `PUT /v1/products/:id/tags`, `GET /v1/tags`, `GET /v1/tags/:name/products`; `GET /v1/products/:id?include=category,tags` | lỗi mới: `invalid-category` (422), `category-not-found` (404), `category-in-use` (409), `duplicate-slug` (409), `tag-not-found` (404); `include` lạ → 400 |
 | Mã lỗi xóa | `ON DELETE RESTRICT` vi phạm = SQLSTATE **`23001`**, KHÔNG phải `23503` (mã này là chèn/sửa trỏ sai) | repository/service bắt cả hai khi xóa |
 | `categoryId` mặc định | vẫn `1` (C02) nhưng nay là khóa ngoại thật: DB trống phải có danh mục 1, nếu không POST sản phẩm → 422 `invalid-category` | testkit: `resetCatalog`/`seedDefaultCategory` |
+
+### 6e. Bề mặt do B03 thêm (từ đây schema đi theo migration, KHÔNG còn `synchronize`)
+
+| Thứ | Đường dẫn / tên | Ghi chú |
+|---|---|---|
+| DataSource chung | `src/database/data-source.ts` → `buildDataSourceOptions({ url, logging? })` + export mặc định `DataSource` cho CLI; `src/database/orm-entities.ts` → `ORM_ENTITIES` (vẫn re-export từ `database.module.ts`) | module thêm entity phải thêm vào `ORM_ENTITIES`; `migrationsTransactionMode: 'each'` |
+| Migration | `src/database/migrations/<timestamp>-<Tên>.ts` (khởi tạo `1760000000001`, rồi `…02 AddProductWeight`, `…03 OrdersUserCreatedIndex`, `…04 RenameUserFullName`) | module sau thêm migration timestamp > `1760000000004`; KHÔNG sửa migration cũ |
+| Cấu hình | `databaseConfig`: `synchronize: false`; `migrationsRun: NODE_ENV !== 'production'` | production chạy migration bằng `npm run migration:run` như bước deploy |
+| Script npm | `migration:generate\|run\|revert\|show`, `typeorm`, `seed` (khai báo trong `solutions/NPM_SCRIPTS` của module, được `assemble.mjs` gộp vào `package.json`) | `migration:revert -- -t none` để lùi migration có `CONCURRENTLY` |
+| Seed bậc thang | `scripts/seed.ts`: `npm run seed -- --scale xs\|s\|m` (DB `shop_<scale>`) hoặc `--orders N`; `--seed S` (42); `m` cần `--yes` | N đơn, N/10 người dùng, N/5 sản phẩm (tối thiểu 10/50), 20 danh mục (5 gốc + 15 con), 3 dòng hàng/đơn; in `checksum=<md5>` và `time=<s>` |
+| Thay đổi schema | `products.weight_grams integer NOT NULL DEFAULT 0` + `ck_products_weight`; `users.full_name` → `users.display_name` (thuộc tính `fullName` giữ nguyên); `idx_orders_user` → `idx_orders_user_created (user_id, created_at)` | thuộc tính `ProductEntity.weightGrams` |
+| Lưu ý TypeORM | `transaction = false` ở migration chỉ hợp lệ khi `migrationsTransactionMode` là `each`/`none`; việc LÙI luôn trong transaction trừ khi `-t none`; `default: () => "'{}'"` (không `::jsonb`) để `generate` không sinh diff thừa | |
+| `NPM_SCRIPTS` / `DEPS` | file ở gốc `solutions/` của module, gộp vào `package.json` khi dựng `.shop-ref` (không dùng tên `SCRIPTS`: trùng thư mục `scripts/` trên Windows) | |
 
 ## 7. Sổ đăng ký testkit (cập nhật khi thêm helper)
 

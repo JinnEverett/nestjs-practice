@@ -73,4 +73,42 @@ Máy dev Windows, client và server cùng máy: xu hướng, không phải số 
 ## Hạn chế
 - Chưa chạy qua `answers` (workspace chưa có `shop-api/`).
 - Q02 ở trạng thái B02 không còn xanh nếu không tạo danh mục 1 (bình thường theo quy ước "module sau có thể phá check module trước"); Q02 vẫn xanh ở trạng thái ngay sau nó.
-- Bảng nối `product_tags` thiếu index cho `tag_id`; để B03 (migration).
+- **Đính chính:** bản đầu của B02 (README/đề/CONTRACT/báo cáo) nói sai rằng `product_tags.tag_id` thiếu index và TypeORM không tự thêm. Migration sinh tự động ở B03 cho thấy TypeORM tạo `IDX_…` cho cả `product_id` và `tag_id`; đã sửa mọi chỗ và bỏ ngoại lệ khỏi check ex04.
+
+---
+
+# B03: Migration và dữ liệu bậc thang
+
+## Quyết định thiết kế
+- **Một `DataSource` cho ba nơi:** `buildDataSourceOptions` dùng chung cho `DatabaseModule`, CLI migration (`data-source.ts` export mặc định) và `scripts/seed.ts`; `ORM_ENTITIES` tách ra `orm-entities.ts`. `synchronize` tắt hẳn.
+- **Ngoài production ứng dụng tự chạy migration (`migrationsRun`), production thì không** (deploy chạy `npm run migration:run` một lần).
+- **Bốn migration, một thay đổi mỗi cái:** ① khởi tạo (sinh thật bằng `migration:generate` trên DB trống), ② thêm `products.weight_grams NOT NULL DEFAULT 0` + CHECK `NOT VALID` rồi `VALIDATE`, ③ thay `idx_orders_user` bằng index ghép bằng `CREATE INDEX CONCURRENTLY` (`transaction = false`), ④ `RENAME COLUMN users.full_name → display_name`.
+- **Seed:** toàn bộ `INSERT ... SELECT ... generate_series` trong một transaction, "ngẫu nhiên" từ `hashtextextended(chỉ số || muối, seed)` nên tất định; in `checksum=` và `time=`; `m` cần `--yes`. Tổng tiền mỗi đơn tuân đúng công thức CONTRACT, kèm quy tắc ship/`WELCOME10`/`FREESHIP`.
+- **Hạ tầng:** `assemble.mjs` gộp `solutions/NPM_SCRIPTS` vào `package.json > scripts` (tên khác `SCRIPTS` vì trùng thư mục `scripts/` trên Windows). Testkit: `rebuildSchema` dùng migration khi có.
+
+## Phát hiện khi kiểm chứng (đều đã xử lý và ghi vào README/CONTRACT)
+1. **`transaction = false` bị từ chối khi chế độ toàn cục là `all` (mặc định)**: `ForbiddenTransactionModeOverrideError`. Cần `migrationsTransactionMode: 'each'`.
+2. **Bất đối xứng khi lùi:** `undoLastMigration` luôn bọc trong transaction (bỏ qua `transaction = false`), nên `down()` có `CONCURRENTLY` lỗi `cannot run inside a transaction block`; chỉ lùi được với `-t none` (`ds.undoLastMigration({ transaction: 'none' })`).
+3. **Entity `default: () => "'{}'::jsonb"` làm `generate` sinh `SET DEFAULT` thừa mãi mãi** (phát hiện nhờ `createSchemaBuilder().log()`); đổi thành `"'{}'"`. Bắt đầu từ B01 entity đã sai điểm này (B01/B02 dùng `synchronize` nên không lộ).
+4. **TypeORM tự tạo index cho cả hai cột của bảng nối `product_tags`** (làm lộ lỗi trong B02, đã đính chính).
+5. **Không đặt tên file `SCRIPTS`** cạnh thư mục `scripts/` (Windows không phân biệt hoa/thường).
+6. `ADD COLUMN NOT NULL` không `DEFAULT` lỗi `23502` khi bảng có dòng; có `DEFAULT` hằng số thì Postgres ≥ 11 không viết lại bảng.
+
+## Số đo (ex08, một lần chạy mỗi ô, DB cùng máy)
+| số dòng | save() từng dòng (ms) | insert() lô 1000 (ms) | INSERT…SELECT (ms) |
+|---|---|---|---|
+| 1 000 | 5 755 | 251 | 28 |
+| 10 000 | 57 066 | 2 040 | 237 |
+| 100 000 | 509 734 | 15 900 | 2 005 |
+
+`insert()` một lần 10 000 dòng: `bind message has 24464 parameter formats but 0 parameters` (vượt 65 535 tham số). Lần chạy 100 000 dòng đầu tiên bị hỏng vì hai tiến trình đo chạy chồng lên cùng một DB; số trên là lần chạy sạch.
+
+## Hạn chế
+- `--scale m` (1 triệu đơn) **chưa được sinh/kiểm chứng thật** (ổ C ít chỗ trống theo tracker, và ước tính vài trăm MB đến hơn 1 GB); chỉ kiểm cơ chế `--yes` và tỉ lệ dữ liệu ở `xs` và 20 000 đơn. Thời gian cho `m` chưa đo.
+- Chưa chạy qua `answers` (workspace chưa có `shop-api/`).
+- `shop_xs` bị ghi đè dữ liệu mỗi khi chạy ex06 (đó là mục đích của DB này).
+
+## Trạng thái kiểm chứng B03 (trung thực)
+- Từng bài chạy riêng đều xanh: ex01 6, ex02 5, ex03 4, ex04 6, ex05 4, ex06 8, ex07 3, ex08 4 test.
+- **Chưa chạy `all` một lượt** sau hai chỉnh sửa cuối: (a) entity `attributes` đổi `default` thành `"'{}'"` (ex02, ex03, ex04, ex05 chạy trước thay đổi này, chỉ ex02 chạy lại sau đó; ex06–ex08 chạy sau); (b) ex04 siết chỉ xét thân `up()` (biểu thức đã kiểm riêng bằng script nhưng test chưa chạy lại).
+- Phép thử đột biến: 10 đột biến đầu bị bắt (bỏ `migrationsTransactionMode: 'each'`, production tự chạy migration, bật `synchronize`, thêm cột NOT NULL không DEFAULT, `down()` rỗng, CHECK không VALIDATE, giữ index cũ, đổi tên cột bằng DROP+ADD, entity bỏ ánh xạ `display_name`); 1 đột biến (index không `CONCURRENTLY` trong `up()`) sống sót nên đã siết ex04; **5 đột biến của `seed.ts` chưa chạy** vì tác vụ bị hệ thống dừng khi máy thiếu RAM. Việc còn lại: chạy lại `all`, rồi 5 đột biến seed (không tất định, bỏ giảm giá khỏi tổng, quên `setval`, không `TRUNCATE`, `m` không cần `--yes`) và đột biến ex04 mới.
