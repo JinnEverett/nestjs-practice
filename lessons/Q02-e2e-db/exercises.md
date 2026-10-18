@@ -28,7 +28,7 @@ Khác các module trước, đây là bài viết **bộ test e2e của chính b
 ### ex03 · Bộ e2e cho Products
 `test/products.e2e-spec.ts` (dựng ứng dụng bằng `Test.createTestingModule({ imports: [AppModule] })` + `configureApp`):
 - Ít nhất **14 test**, xanh. Phủ `POST`, `GET` (danh sách và chi tiết), `PATCH`, `DELETE` với các mã `200, 201, 204, 400, 401, 404, 409`.
-- Mỗi test bắt đầu từ DB sạch (`cleanDatabase` trong `beforeEach`); dữ liệu dựng bằng factory; **có test kiểm trạng thái trong DB** (qua `DataSource`, `.query(...)`... ) chứ không chỉ nhìn phản hồi, gồm cả ca lỗi "DB không đổi".
+- Mỗi test bắt đầu từ DB sạch (`cleanDatabase` trong `beforeEach`); dữ liệu dựng bằng factory; **có test kiểm trạng thái trong DB** (qua `DataSource`, `.query(...)`... ) chứ không chỉ nhìn phản hồi, gồm cả ca lỗi "DB không đổi". Lưu ý: cột `price` là `numeric(12,0)` (B01) nên driver `pg` trả **chuỗi** (`'2000'`, không phải `2000`); ép kiểu trong SQL (`price::int`) hoặc so với chuỗi.
 - Không id cứng trong URL (`/v1/products/1`), không `setTimeout`/`sleep`, mỗi test có assertion.
 
 ### ex04 · Ổn định

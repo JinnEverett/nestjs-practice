@@ -1,0 +1,3 @@
+dependencies @nestjs/typeorm@^12.0.0
+dependencies typeorm@^1.1.0
+dependencies pg@^8.0.0

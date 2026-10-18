@@ -1,0 +1,2332 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/ping": {
+      "get": {
+        "operationId": "Ping_ping",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pong": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "time": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "pong",
+                    "time"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Kiểm tra sống",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/v1/products": {
+      "post": {
+        "operationId": "Products_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tạo thành công; header Location trỏ tới tài nguyên",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai X-Api-Key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Xung đột (out-of-stock, duplicate-sku, conflict)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "summary": "Tạo sản phẩm",
+        "tags": [
+          "products"
+        ]
+      },
+      "get": {
+        "operationId": "Products_findAll_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Tiền tố - để giảm dần. Hòa thì xếp theo id tăng.",
+            "schema": {
+              "pattern": "^-?(id|price|name|createdAt|stock)$",
+              "default": "id",
+              "example": "-price",
+              "type": "string"
+            }
+          },
+          {
+            "name": "brand",
+            "required": false,
+            "in": "query",
+            "description": "Khớp đầy đủ, không phân biệt hoa thường",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "minPrice",
+            "required": false,
+            "in": "query",
+            "description": "Bao gồm biên; không được lớn hơn maxPrice",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Tìm trong tên, không phân biệt hoa thường",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Danh sách có phân trang",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Product"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Danh sách sản phẩm (lọc, sắp xếp, phân trang)",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/v1/products/low-stock": {
+      "get": {
+        "operationId": "Products_lowStock_v1",
+        "parameters": [
+          {
+            "name": "threshold",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "maximum": 1000,
+              "default": 5,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "{ data: Product[], meta: { threshold, total } }"
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai X-Api-Key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "summary": "Sản phẩm đang bán sắp hết hàng (tồn kho <= threshold)",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/v1/products/count": {
+      "get": {
+        "deprecated": true,
+        "operationId": "Products_count_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Dùng meta.total của danh sách thay thế",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "count"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Đếm sản phẩm (DEPRECATED)",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/v1/products/{id}": {
+      "get": {
+        "operationId": "Products_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "include",
+            "required": false,
+            "in": "query",
+            "description": "Quan hệ nạp kèm, phân tách bằng dấu phẩy: category, tags",
+            "schema": {
+              "example": "category,tags",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Chi tiết sản phẩm",
+        "tags": [
+          "products"
+        ]
+      },
+      "patch": {
+        "operationId": "Products_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProductDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Product"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai X-Api-Key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Xung đột (out-of-stock, duplicate-sku, conflict)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "summary": "Cập nhật một phần sản phẩm",
+        "tags": [
+          "products"
+        ]
+      },
+      "delete": {
+        "operationId": "Products_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Đã xóa"
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai X-Api-Key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Xung đột (out-of-stock, duplicate-sku, conflict)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "summary": "Xóa sản phẩm chưa từng được đặt",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/v2/products": {
+      "get": {
+        "operationId": "ProductsV2_findAll_v2",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Tiền tố - để giảm dần. Hòa thì xếp theo id tăng.",
+            "schema": {
+              "pattern": "^-?(id|price|name|createdAt|stock)$",
+              "default": "id",
+              "example": "-price",
+              "type": "string"
+            }
+          },
+          {
+            "name": "brand",
+            "required": false,
+            "in": "query",
+            "description": "Khớp đầy đủ, không phân biệt hoa thường",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "minPrice",
+            "required": false,
+            "in": "query",
+            "description": "Bao gồm biên; không được lớn hơn maxPrice",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Tìm trong tên, không phân biệt hoa thường",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductsPageV2Dto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Danh sách sản phẩm (hình dạng v2: items + pagination)",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/v1/p/{sku}": {
+      "get": {
+        "operationId": "ProductShortLink_bySku_v1",
+        "parameters": [
+          {
+            "name": "sku",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "AO-THUN-01",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Location: /v1/products/{id}"
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Link ngắn theo SKU: chuyển hướng 302 tới chi tiết sản phẩm",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/v1/categories": {
+      "post": {
+        "operationId": "Categories_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai X-Api-Key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Xung đột (out-of-stock, duplicate-sku, conflict)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Vi phạm quy tắc nghiệp vụ",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "summary": "Tạo danh mục",
+        "tags": [
+          "categories"
+        ]
+      },
+      "get": {
+        "operationId": "Categories_findAll_v1",
+        "parameters": [
+          {
+            "name": "include",
+            "required": false,
+            "in": "query",
+            "description": "Quan hệ nạp kèm, phân tách bằng dấu phẩy: children, products",
+            "schema": {
+              "example": "children,products",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryView"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Danh sách danh mục (phẳng); ?include=children,products nạp kèm quan hệ",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/v1/categories/{id}": {
+      "get": {
+        "operationId": "Categories_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "include",
+            "required": false,
+            "in": "query",
+            "description": "Quan hệ nạp kèm, phân tách bằng dấu phẩy: children, products",
+            "schema": {
+              "example": "children,products",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Vi phạm quy tắc nghiệp vụ",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Chi tiết danh mục",
+        "tags": [
+          "categories"
+        ]
+      },
+      "delete": {
+        "operationId": "Categories_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Đã xóa"
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai X-Api-Key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Xung đột (out-of-stock, duplicate-sku, conflict)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Vi phạm quy tắc nghiệp vụ",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "summary": "Xóa danh mục không còn sản phẩm hay danh mục con",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/v1/products/{id}/tags": {
+      "put": {
+        "operationId": "Tags_setProductTags_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetProductTagsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductTagsView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai X-Api-Key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "summary": "Đặt tập nhãn của sản phẩm (thay thế toàn bộ)",
+        "tags": [
+          "tags"
+        ]
+      }
+    },
+    "/v1/tags": {
+      "get": {
+        "operationId": "Tags_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TagCountView"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Danh sách nhãn kèm số sản phẩm",
+        "tags": [
+          "tags"
+        ]
+      }
+    },
+    "/v1/tags/{name}/products": {
+      "get": {
+        "operationId": "Tags_productsOf_v1",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Sản phẩm mang một nhãn",
+        "tags": [
+          "tags"
+        ]
+      }
+    },
+    "/v1/orders": {
+      "post": {
+        "operationId": "Orders_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tạo thành công; header Location trỏ tới đơn",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai X-Api-Key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Xung đột (out-of-stock, duplicate-sku, conflict)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Vi phạm quy tắc nghiệp vụ",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "summary": "Đặt hàng (giá lấy từ sản phẩm tại thời điểm đặt)",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/v1/orders/{id}": {
+      "get": {
+        "operationId": "Orders_findOne_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Chi tiết đơn hàng",
+        "tags": [
+          "orders"
+        ]
+      }
+    },
+    "/v1/products/{id}/image": {
+      "post": {
+        "operationId": "ProductImages_upload_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Đã lưu ảnh; Location trỏ tới ảnh",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "productId": {
+                      "type": "integer"
+                    },
+                    "imageUrl": {
+                      "type": "string"
+                    },
+                    "contentType": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai X-Api-Key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Lỗi",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Lỗi",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "summary": "Tải ảnh sản phẩm lên (JPEG/PNG/WebP, tối đa 2MB)",
+        "tags": [
+          "products"
+        ]
+      },
+      "get": {
+        "operationId": "ProductImages_download_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nội dung ảnh",
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Tải ảnh sản phẩm (stream)",
+        "tags": [
+          "products"
+        ]
+      },
+      "delete": {
+        "operationId": "ProductImages_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Dữ liệu không hợp lệ (type validation hoặc bad-request)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai X-Api-Key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "summary": "Xóa ảnh sản phẩm",
+        "tags": [
+          "products"
+        ]
+      }
+    },
+    "/v1/exports/products.csv": {
+      "get": {
+        "operationId": "Exports_export_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "CSV UTF-8 có BOM",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Thiếu hoặc sai X-Api-Key\n\nThiếu hoặc sai X-Api-Key",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi hệ thống (không lộ chi tiết)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetailsDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ],
+        "summary": "Xuất toàn bộ sản phẩm ra CSV (stream)",
+        "tags": [
+          "products"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Shop API",
+    "description": "API bán hàng của khóa học NestJS. Lỗi luôn là application/problem+json (RFC 9457).",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "products",
+      "description": "Danh mục sản phẩm"
+    },
+    {
+      "name": "orders",
+      "description": "Đặt hàng"
+    },
+    {
+      "name": "system",
+      "description": "Kiểm tra sống"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "ApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Api-Key"
+      }
+    },
+    "schemas": {
+      "CreateProductDto": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string",
+            "example": "AO-THUN-01",
+            "pattern": "^[A-Z0-9-]{3,20}$",
+            "description": "Được trim và đổi sang chữ hoa"
+          },
+          "name": {
+            "type": "string",
+            "example": "Áo thun cotton",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "price": {
+            "type": "number",
+            "example": 199000,
+            "minimum": 0,
+            "maximum": 999999999999,
+            "description": "VND, số nguyên (tối đa 12 chữ số: numeric(12,0))"
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1,
+            "maximum": 2147483647,
+            "default": 1
+          },
+          "brand": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 80,
+            "example": "Acme"
+          },
+          "stock": {
+            "type": "number",
+            "example": 25,
+            "minimum": 0,
+            "maximum": 2147483647,
+            "default": 0
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": {
+              "color": "black"
+            }
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "sku",
+          "name",
+          "price"
+        ]
+      },
+      "ProductCategorySummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Thời trang"
+          },
+          "slug": {
+            "type": "string",
+            "example": "thoi-trang"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug"
+        ]
+      },
+      "Product": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 42
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 1
+          },
+          "sku": {
+            "type": "string",
+            "example": "AO-THUN-01",
+            "pattern": "^[A-Z0-9-]{3,20}$"
+          },
+          "name": {
+            "type": "string",
+            "example": "Áo thun cotton",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "brand": {
+            "type": "string",
+            "nullable": true,
+            "example": "Acme"
+          },
+          "price": {
+            "type": "number",
+            "example": 199000,
+            "minimum": 0,
+            "description": "VND, số nguyên"
+          },
+          "stock": {
+            "type": "number",
+            "example": 25,
+            "minimum": 0
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": {
+              "color": "black"
+            }
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2026-10-17T08:00:00.000Z",
+            "format": "date-time"
+          },
+          "category": {
+            "description": "Chỉ có khi ?include=category",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ProductCategorySummary"
+              }
+            ]
+          },
+          "tags": {
+            "example": [
+              "sale",
+              "new"
+            ],
+            "description": "Chỉ có khi ?include=tags; sắp theo tên",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "categoryId",
+          "sku",
+          "name",
+          "brand",
+          "price",
+          "stock",
+          "attributes",
+          "isActive",
+          "createdAt"
+        ]
+      },
+      "PaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "total": {
+            "type": "number",
+            "example": 137,
+            "description": "Tổng số bản ghi sau khi lọc"
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total"
+        ]
+      },
+      "UpdateProductDto": {
+        "type": "object",
+        "properties": {
+          "sku": {
+            "type": "string",
+            "example": "AO-THUN-01",
+            "pattern": "^[A-Z0-9-]{3,20}$",
+            "description": "Được trim và đổi sang chữ hoa"
+          },
+          "name": {
+            "type": "string",
+            "example": "Áo thun cotton",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "price": {
+            "type": "number",
+            "example": 199000,
+            "minimum": 0,
+            "maximum": 999999999999,
+            "description": "VND, số nguyên (tối đa 12 chữ số: numeric(12,0))"
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 1,
+            "minimum": 1,
+            "maximum": 2147483647,
+            "default": 1
+          },
+          "brand": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 80,
+            "example": "Acme"
+          },
+          "stock": {
+            "type": "number",
+            "example": 25,
+            "minimum": 0,
+            "maximum": 2147483647,
+            "default": 0
+          },
+          "attributes": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": {
+              "color": "black"
+            }
+          },
+          "isActive": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "PaginationV2Dto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "total": {
+            "type": "number",
+            "example": 137
+          },
+          "pages": {
+            "type": "number",
+            "example": 7,
+            "description": "ceil(total / limit)"
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "pages"
+        ]
+      },
+      "ProductsPageV2Dto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Product"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationV2Dto"
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ]
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Áo thun",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "slug": {
+            "type": "string",
+            "example": "ao-thun",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "maxLength": 100
+          },
+          "parentId": {
+            "type": "number",
+            "nullable": true,
+            "example": 1,
+            "description": "Danh mục cha; bỏ trống hoặc null cho danh mục gốc"
+          }
+        },
+        "required": [
+          "name",
+          "slug"
+        ]
+      },
+      "CategoryProductSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "description": "VND, số nguyên"
+          }
+        },
+        "required": [
+          "id",
+          "sku",
+          "name",
+          "price"
+        ]
+      },
+      "CategoryView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "parentId": {
+            "type": "number",
+            "nullable": true,
+            "example": null
+          },
+          "name": {
+            "type": "string",
+            "example": "Áo thun"
+          },
+          "slug": {
+            "type": "string",
+            "example": "ao-thun"
+          },
+          "children": {
+            "description": "Chỉ có khi ?include=children; sắp theo id",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryView"
+            }
+          },
+          "products": {
+            "description": "Chỉ có khi ?include=products; sắp theo id",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CategoryProductSummary"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "parentId",
+          "name",
+          "slug"
+        ]
+      },
+      "SetProductTagsDto": {
+        "type": "object",
+        "properties": {
+          "tags": {
+            "example": [
+              "sale",
+              "new"
+            ],
+            "maxItems": 20,
+            "description": "Tập nhãn MỚI của sản phẩm (thay thế toàn bộ); mảng rỗng = gỡ hết nhãn",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "tags"
+        ]
+      },
+      "ProductTagsView": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "number"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "productId",
+          "tags"
+        ]
+      },
+      "TagCountView": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "sale"
+          },
+          "productCount": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "name",
+          "productCount"
+        ]
+      },
+      "CreateOrderItemDto": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "number",
+            "example": 42,
+            "minimum": 1
+          },
+          "quantity": {
+            "type": "number",
+            "example": 2,
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "productId",
+          "quantity"
+        ]
+      },
+      "CreateOrderDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "minItems": 1,
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateOrderItemDto"
+            }
+          },
+          "discountCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "WELCOME10",
+            "pattern": "^[A-Za-z0-9-]{1,20}$"
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "OrderItem": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "number",
+            "example": 42
+          },
+          "quantity": {
+            "type": "number",
+            "example": 2,
+            "minimum": 1
+          },
+          "unitPrice": {
+            "type": "number",
+            "example": 199000,
+            "description": "Giá tại thời điểm đặt (VND)"
+          }
+        },
+        "required": [
+          "productId",
+          "quantity",
+          "unitPrice"
+        ]
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1001
+          },
+          "userId": {
+            "type": "number",
+            "example": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "paid",
+              "shipped",
+              "delivered",
+              "cancelled",
+              "refunded"
+            ],
+            "example": "pending"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          },
+          "shippingFee": {
+            "type": "number",
+            "example": 30000
+          },
+          "discountCode": {
+            "type": "string",
+            "nullable": true,
+            "example": "WELCOME10"
+          },
+          "discountAmount": {
+            "type": "number",
+            "example": 39800
+          },
+          "totalAmount": {
+            "type": "number",
+            "example": 388200,
+            "description": "Σ(unitPrice × quantity) + shippingFee − discountAmount"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-17T08:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-10-17T08:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "status",
+          "items",
+          "shippingFee",
+          "discountCode",
+          "discountAmount",
+          "totalAmount",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "FieldErrorDto": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "example": "items.1.quantity"
+          },
+          "message": {
+            "type": "string",
+            "example": "quantity must not be less than 1"
+          }
+        },
+        "required": [
+          "field",
+          "message"
+        ]
+      },
+      "ProblemDetailsDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "urn:shop:error:out-of-stock",
+            "description": "Định danh ổn định để client rẽ nhánh"
+          },
+          "title": {
+            "type": "string",
+            "example": "Conflict"
+          },
+          "status": {
+            "type": "number",
+            "example": 409
+          },
+          "detail": {
+            "type": "string",
+            "example": "Sản phẩm #7 không đủ tồn kho (cần 5, còn 2)"
+          },
+          "instance": {
+            "type": "string",
+            "example": "/v1/orders"
+          },
+          "errors": {
+            "description": "Chỉ có khi type = urn:shop:error:validation",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldErrorDto"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "instance"
+        ]
+      }
+    }
+  }
+}

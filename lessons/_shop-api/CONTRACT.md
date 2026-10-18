@@ -133,10 +133,50 @@ Quy tắc giá (từ C03): phí ship `30000`, miễn phí khi tổng tiền hàn
 | Route nội bộ | `/v1/_trace`, `/v1/_scope`, `/v1/_reports/summary`, `/v1/legacy/**` (`@ApiExcludeController`) | C08–C11 |
 | Spec nằm trong `src/` | Q01, Q03, Q04 overlay các `*.spec.ts`; `tsc --noEmit` của module sau cũng biên dịch chúng: đổi chữ ký service/guard/interceptor thì overlay lại spec tương ứng | Q01, Q03, Q04 |
 
+### 6c. Bề mặt do B01 thêm (module sau — B02+, A01, R*, M* — tái dùng, đừng tạo song song)
+
+| Thứ | Đường dẫn / tên | Ghi chú |
+|---|---|---|
+| Kết nối DB | `src/database/database.module.ts` → `DatabaseModule` (import trong `AppModule`); `DataSource` của TypeORM được đăng ký **toàn cục** | `TypeOrmModule.forRootAsync` + `databaseConfig`; danh sách entity ở `ORM_ENTITIES` (module thêm entity phải thêm vào đó) |
+| Cấu hình DB | `src/config/database.config.ts` → `{ url, synchronize, logging, retryAttempts, retryDelay }` | `synchronize = (NODE_ENV !== 'production')` đến B03; `DB_LOGGING` (boolean) thêm vào `Env` và `.env.example` |
+| Entity (6 bảng) | `src/database/entities/<tên>.orm-entity.ts` → `ProductEntity, CategoryEntity, UserEntity, OrderEntity, OrderItemEntity, PaymentEntity` | tên **ORM**, tách khỏi lớp API `Product`/`Order` (swagger) trong `src/*/entities/*.entity.ts`; B06 bàn lại ranh giới này |
+| Tên bảng/cột | `products, categories, users, orders, order_items, payments`; cột snake_case (`category_id, created_at`…) | tiền `numeric(12,0)`, thời gian `timestamptz`; ràng buộc đặt tên `uq_<bảng>_<cột>`, `ck_<bảng>_<ý>`, (B02) `fk_<bảng>_<cột>` |
+| Tiền | `src/database/transformers.ts` → `moneyTransformer` (numeric ⇄ number, ném lỗi nếu vượt số nguyên an toàn), `MONEY_MAX = 999_999_999_999`, `INT4_MAX` | driver `pg` trả `numeric` là **chuỗi**; DTO có `@Max(MONEY_MAX)`/`@Max(INT4_MAX)` để trả 400 thay vì 500 |
+| Repository sản phẩm | `src/products/typeorm-products.repository.ts` → `TypeOrmProductsRepository` (cùng `ProductsRepository`); lỗi `23505` → `DuplicateSkuError` | `ProductsModule` import `TypeOrmModule.forFeature([ProductEntity])` |
+| Chưa có ở B01 | khóa ngoại/quan hệ (B02), đơn hàng trong DB (B05), migration (B03) | `OrdersService` vẫn dùng RAM |
+| Lưu ý Postgres 18 | mỗi cột `NOT NULL` cũng là một dòng trong `pg_constraint` (loại `n`) | lọc `contype <> 'n'` khi liệt kê ràng buộc |
+
+### 6d. Bề mặt do B02 thêm
+
+| Thứ | Đường dẫn / tên | Ghi chú |
+|---|---|---|
+| Quan hệ ORM | `ProductEntity.category` (n-1) / `.tags` (n-n, bên sở hữu `@JoinTable` → `product_tags`); `CategoryEntity.parent/children/products`; `UserEntity.profile` (1-1) / `.orders`; `OrderEntity.user/items/payments`; `OrderItemEntity.order/product`; `PaymentEntity.order` | kiểu quan hệ viết `Relation<T>` + `import type`; khóa ngoại đặt tên `fk_<bảng>_<ý>`; mọi cột khóa ngoại có index (bảng nối `product_tags`: TypeORM tự tạo `IDX_…` cho cả hai cột) |
+| Bảng mới | `tags (id, name)`, `product_tags (product_id, tag_id)`, `user_profiles (user_id PK/FK, phone, address, updated_at)` | `ORM_ENTITIES` thêm `TagEntity`, `UserProfileEntity` |
+| API mới | `POST|GET|DELETE /v1/categories[/:id]` (`?include=children,products`), `PUT /v1/products/:id/tags`, `GET /v1/tags`, `GET /v1/tags/:name/products`; `GET /v1/products/:id?include=category,tags` | lỗi mới: `invalid-category` (422), `category-not-found` (404), `category-in-use` (409), `duplicate-slug` (409), `tag-not-found` (404); `include` lạ → 400 |
+| Mã lỗi xóa | `ON DELETE RESTRICT` vi phạm = SQLSTATE **`23001`**, KHÔNG phải `23503` (mã này là chèn/sửa trỏ sai) | repository/service bắt cả hai khi xóa |
+| `categoryId` mặc định | vẫn `1` (C02) nhưng nay là khóa ngoại thật: DB trống phải có danh mục 1, nếu không POST sản phẩm → 422 `invalid-category` | testkit: `resetCatalog`/`seedDefaultCategory` |
+
+### 6e. Bề mặt do B03 thêm (từ đây schema đi theo migration, KHÔNG còn `synchronize`)
+
+| Thứ | Đường dẫn / tên | Ghi chú |
+|---|---|---|
+| DataSource chung | `src/database/data-source.ts` → `buildDataSourceOptions({ url, logging? })` + export mặc định `DataSource` cho CLI; `src/database/orm-entities.ts` → `ORM_ENTITIES` (vẫn re-export từ `database.module.ts`) | module thêm entity phải thêm vào `ORM_ENTITIES`; `migrationsTransactionMode: 'each'` |
+| Migration | `src/database/migrations/<timestamp>-<Tên>.ts` (khởi tạo `1760000000001`, rồi `…02 AddProductWeight`, `…03 OrdersUserCreatedIndex`, `…04 RenameUserFullName`) | module sau thêm migration timestamp > `1760000000004`; KHÔNG sửa migration cũ |
+| Cấu hình | `databaseConfig`: `synchronize: false`; `migrationsRun: NODE_ENV !== 'production'` | production chạy migration bằng `npm run migration:run` như bước deploy |
+| Script npm | `migration:generate\|run\|revert\|show`, `typeorm`, `seed` (khai báo trong `solutions/NPM_SCRIPTS` của module, được `assemble.mjs` gộp vào `package.json`) | `migration:revert -- -t none` để lùi migration có `CONCURRENTLY` |
+| Seed bậc thang | `scripts/seed.ts`: `npm run seed -- --scale xs\|s\|m` (DB `shop_<scale>`) hoặc `--orders N`; `--seed S` (42); `m` cần `--yes` | N đơn, N/10 người dùng, N/5 sản phẩm (tối thiểu 10/50), 20 danh mục (5 gốc + 15 con), 3 dòng hàng/đơn; in `checksum=<md5>` và `time=<s>` |
+| Thay đổi schema | `products.weight_grams integer NOT NULL DEFAULT 0` + `ck_products_weight`; `users.full_name` → `users.display_name` (thuộc tính `fullName` giữ nguyên); `idx_orders_user` → `idx_orders_user_created (user_id, created_at)` | thuộc tính `ProductEntity.weightGrams` |
+| Lưu ý TypeORM | `transaction = false` ở migration chỉ hợp lệ khi `migrationsTransactionMode` là `each`/`none`; việc LÙI luôn trong transaction trừ khi `-t none`; `default: () => "'{}'"` (không `::jsonb`) để `generate` không sinh diff thừa | |
+| `NPM_SCRIPTS` / `DEPS` | file ở gốc `solutions/` của module, gộp vào `package.json` khi dựng `.shop-ref` (không dùng tên `SCRIPTS`: trùng thư mục `scripts/` trên Windows) | |
+
 ## 7. Sổ đăng ký testkit (cập nhật khi thêm helper)
 
 | File | Export | Thêm bởi |
 |---|---|---|
 | `_kit.ts` | `createTestApp, http, sleep, fileExists, readSource, repoPath` | hạ tầng |
+| `_db.ts` | `DB_URL, dataSourceOf, userTables, resetDatabase, rebuildSchema, pgErrorCode, withEnv` | B01 |
+| `_src.ts` | `stripComments` | B01 |
+| `_schema.ts` | `columnsOf, describe_, describeTable, constraintsOf` (đọc schema thật từ information_schema/pg_constraint) | B01 |
+| `_db.ts` (thêm) | `seedDefaultCategory, resetCatalog, countQueries, freshDatabase` (xóa sạch schema `public` bằng kết nối riêng TRƯỚC khi dựng app: dùng khi module đổi schema, vì thêm FK/ràng buộc lên DB còn dữ liệu cũ có thể làm app không khởi động) | B02 |
 
 > Người soạn module thêm helper mới: tạo file `_shop-api/testkit/_<tên>.ts`, ghi vào bảng trên, và **không** đổi chữ ký các export cũ.

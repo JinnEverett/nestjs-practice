@@ -27,7 +27,7 @@ describe('Products (e2e, DB thật)', () => {
   });
 
   const rows = async (): Promise<{ id: number; sku: string; price: number; stock: number }[]> =>
-    app.get(DataSource).query('SELECT id, sku, price, stock FROM products ORDER BY id');
+    app.get(DataSource).query('SELECT id, sku, price::int AS price, stock FROM products ORDER BY id');
 
   describe('POST /v1/products', () => {
     it('tạo → 201, Location, và bản ghi thật sự nằm trong DB', async () => {
