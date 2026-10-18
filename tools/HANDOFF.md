@@ -1,4 +1,4 @@
-# Bàn giao: việc còn lại (cập nhật 2026-10-18)
+# Bàn giao: việc còn lại (cập nhật 2026-10-18, sau khi merge Nestjs #3 và Sql #4)
 
 Ghi chú để quay lại làm tiếp. Trạng thái chi tiết từng module nằm ở `tools/CONTENT_PLAN.md` và `tools/reports/b.md`; file này chỉ liệt kê **việc cần làm** và **những thứ cần lưu ý trước khi làm**.
 
@@ -41,7 +41,7 @@ Sửa `solutions/scripts/seed.ts` rồi chạy ex06, kỳ vọng đỏ:
 5. `if (args.scale === 'm' && !args.yes) fail(...)` → `if (false)` (m không cần `--yes`).
 
 ## 5. Các repo khác (cập nhật cùng ngày)
-- **Nestjs:** PR #3 (`content/b`: B01, B02, B03, sửa Q02, hạ tầng testkit) **đang mở, chưa merge**. Workspace chưa có `shop-api/` của người học, nên mọi kiểm chứng đều chạy qua `--solutions`, chưa qua `answers`.
-- **Sql:** PR #4 (`content/o`: I08, I09, O01–O06) **đang mở, chưa merge**; đã verify 34 đạt, 29 tự đối chiếu, 0 lỗi. Còn nhánh remote `content/o` cho tới khi merge. Lưu ý `tools/reports/o.md` ghi một sự cố: dồn ~100 kết nối sát giới hạn vào `sql-practice-pg` làm server tự restart một lần (đã tự phục hồi, không mất dữ liệu); thí nghiệm tương tự chỉ làm trên container tạm.
+- **Nestjs:** PR #3 (`content/b`: B01, B02, B03, sửa Q02, hạ tầng testkit) **đã merge vào `main`**. Workspace chưa có `shop-api/` của người học, nên mọi kiểm chứng đều chạy qua `--solutions`, chưa qua `answers`.
+- **Sql:** PR #4 (`content/o`: I08, I09, O01–O06) **đã merge vào `main`**; đã verify 34 đạt, 29 tự đối chiếu, 0 lỗi. Còn nhánh remote `content/o` cho tới khi merge. Lưu ý `tools/reports/o.md` ghi một sự cố: dồn ~100 kết nối sát giới hạn vào `sql-practice-pg` làm server tự restart một lần (đã tự phục hồi, không mất dữ liệu); thí nghiệm tương tự chỉ làm trên container tạm.
 - **Dsa:** đã soạn đủ và đã merge. Nhánh remote `content/d`, `content/i` là bản nháp cũ chưa merge (có thể xóa sau khi xác nhận).
 - **Ielts, System Design:** không có việc gì.
