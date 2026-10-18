@@ -67,3 +67,59 @@ export async function withEnv<T>(vars: Record<string, string | undefined>, fn: (
     }
   }
 }
+
+/**
+ * Tạo danh mục id=1 ("Chưa phân loại") nếu chưa có, và chỉnh sequence để danh mục tạo sau không đụng id 1.
+ * Từ B02 sản phẩm có khóa ngoại tới `categories`, mà `categoryId` mặc định của API là 1 (C02): DB trống thì phải có danh mục 1 trước.
+ */
+export async function seedDefaultCategory(app: INestApplication): Promise<void> {
+  const ds = dataSourceOf(app);
+  await ds.query(`INSERT INTO categories (id, name, slug) VALUES (1, 'Chưa phân loại', 'chua-phan-loai') ON CONFLICT (id) DO NOTHING`);
+  await ds.query(`SELECT setval(pg_get_serial_sequence('categories', 'id'), GREATEST((SELECT max(id) FROM categories), 1))`);
+}
+
+/** `resetDatabase` rồi `seedDefaultCategory`: trạng thái "DB sạch nhưng đủ để tạo sản phẩm". */
+export async function resetCatalog(app: INestApplication): Promise<void> {
+  await resetDatabase(app);
+  await seedDefaultCategory(app);
+}
+
+/**
+ * Đếm (và trả về) các câu SQL mà `fn` gây ra, bằng cách bọc `pg.Client.prototype.query` (mọi truy vấn của TypeORM đi qua đây).
+ * Bỏ qua câu điều khiển transaction (BEGIN/COMMIT/ROLLBACK/SAVEPOINT). Dùng để phát hiện N+1: số truy vấn phải KHÔNG tăng theo số dòng.
+ */
+export async function countQueries<T>(fn: () => Promise<T>): Promise<{ result: T; queries: string[] }> {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Client } = require('pg') as { Client: { prototype: { query: (...args: unknown[]) => unknown } } };
+  const original = Client.prototype.query;
+  const queries: string[] = [];
+  Client.prototype.query = function (this: unknown, ...args: unknown[]) {
+    const first = args[0];
+    const text = typeof first === 'string' ? first : (first as { text?: string } | undefined)?.text;
+    if (typeof text === 'string' && !/^\s*(BEGIN|COMMIT|ROLLBACK|START TRANSACTION|SAVEPOINT|RELEASE)/i.test(text)) queries.push(text);
+    return original.apply(this, args);
+  };
+  try {
+    return { result: await fn(), queries };
+  } finally {
+    Client.prototype.query = original;
+  }
+}
+
+/**
+ * Xóa sạch mọi thứ trong schema `public` bằng kết nối riêng (TRƯỚC khi dựng ứng dụng). Check của module thay đổi schema phải bắt đầu từ DB
+ * trống: nếu DB còn dữ liệu của module trước, việc thêm khóa ngoại/ràng buộc bằng `synchronize` có thể thất bại ngay lúc khởi động
+ * (vd. sản phẩm có category_id = 1 nhưng chưa có danh mục nào), và ứng dụng không dậy được.
+ */
+export async function freshDatabase(): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Client } = require('pg') as { Client: new (o: { connectionString: string }) => { connect(): Promise<void>; query(q: string): Promise<unknown>; end(): Promise<void> } };
+  const client = new Client({ connectionString: DB_URL() });
+  await client.connect();
+  try {
+    await client.query('DROP SCHEMA public CASCADE');
+    await client.query('CREATE SCHEMA public');
+  } finally {
+    await client.end();
+  }
+}

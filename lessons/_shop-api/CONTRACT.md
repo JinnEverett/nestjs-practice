@@ -146,12 +146,24 @@ Quy tắc giá (từ C03): phí ship `30000`, miễn phí khi tổng tiền hàn
 | Chưa có ở B01 | khóa ngoại/quan hệ (B02), đơn hàng trong DB (B05), migration (B03) | `OrdersService` vẫn dùng RAM |
 | Lưu ý Postgres 18 | mỗi cột `NOT NULL` cũng là một dòng trong `pg_constraint` (loại `n`) | lọc `contype <> 'n'` khi liệt kê ràng buộc |
 
+### 6d. Bề mặt do B02 thêm
+
+| Thứ | Đường dẫn / tên | Ghi chú |
+|---|---|---|
+| Quan hệ ORM | `ProductEntity.category` (n-1) / `.tags` (n-n, bên sở hữu `@JoinTable` → `product_tags`); `CategoryEntity.parent/children/products`; `UserEntity.profile` (1-1) / `.orders`; `OrderEntity.user/items/payments`; `OrderItemEntity.order/product`; `PaymentEntity.order` | kiểu quan hệ viết `Relation<T>` + `import type`; khóa ngoại đặt tên `fk_<bảng>_<ý>`; mọi cột khóa ngoại có index (trừ `product_tags.tag_id`, B03) |
+| Bảng mới | `tags (id, name)`, `product_tags (product_id, tag_id)`, `user_profiles (user_id PK/FK, phone, address, updated_at)` | `ORM_ENTITIES` thêm `TagEntity`, `UserProfileEntity` |
+| API mới | `POST|GET|DELETE /v1/categories[/:id]` (`?include=children,products`), `PUT /v1/products/:id/tags`, `GET /v1/tags`, `GET /v1/tags/:name/products`; `GET /v1/products/:id?include=category,tags` | lỗi mới: `invalid-category` (422), `category-not-found` (404), `category-in-use` (409), `duplicate-slug` (409), `tag-not-found` (404); `include` lạ → 400 |
+| Mã lỗi xóa | `ON DELETE RESTRICT` vi phạm = SQLSTATE **`23001`**, KHÔNG phải `23503` (mã này là chèn/sửa trỏ sai) | repository/service bắt cả hai khi xóa |
+| `categoryId` mặc định | vẫn `1` (C02) nhưng nay là khóa ngoại thật: DB trống phải có danh mục 1, nếu không POST sản phẩm → 422 `invalid-category` | testkit: `resetCatalog`/`seedDefaultCategory` |
+
 ## 7. Sổ đăng ký testkit (cập nhật khi thêm helper)
 
 | File | Export | Thêm bởi |
 |---|---|---|
 | `_kit.ts` | `createTestApp, http, sleep, fileExists, readSource, repoPath` | hạ tầng |
-| `_db.ts` | `DB_URL, dataSourceOf, userTables, resetDatabase, pgErrorCode, withEnv` | B01 |
+| `_db.ts` | `DB_URL, dataSourceOf, userTables, resetDatabase, rebuildSchema, pgErrorCode, withEnv` | B01 |
 | `_src.ts` | `stripComments` | B01 |
+| `_schema.ts` | `columnsOf, describe_, describeTable, constraintsOf` (đọc schema thật từ information_schema/pg_constraint) | B01 |
+| `_db.ts` (thêm) | `seedDefaultCategory, resetCatalog, countQueries, freshDatabase` (xóa sạch schema `public` bằng kết nối riêng TRƯỚC khi dựng app: dùng khi module đổi schema, vì thêm FK/ràng buộc lên DB còn dữ liệu cũ có thể làm app không khởi động) | B02 |
 
 > Người soạn module thêm helper mới: tạo file `_shop-api/testkit/_<tên>.ts`, ghi vào bảng trên, và **không** đổi chữ ký các export cũ.

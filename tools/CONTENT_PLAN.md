@@ -16,7 +16,8 @@ Giai đoạn 1 (hiện tại): soạn cho xong, chưa verify. Giai đoạn 2: ch
 | Q | Q01, Q03, Q04 | 🧪 | nhóm core; chấm bằng test ẩn + **mutation** (spec của người học phải bắt ≥ 80% lỗi cài sẵn). Q03, Q04 được thêm vào `ORDER.md` để chạy được `--solutions` |
 | Q | Q02 | 🧪 | nhóm core; cần B01. Đã chạy xanh **với B01 thật** (42/42 test) trên Postgres 18.6; đã sửa đáp án mẫu cho `price` là `numeric` (driver `pg` trả chuỗi) và thêm lưu ý vào đề ex03 |
 | B | B01 | 🧪 | `--solutions` xanh 53/53 test (9 bài, Postgres 18.6); 10/10 phép thử đột biến (mutation) trên đáp án đều bị check bắt; bài 📏 ex09 có số đo thật. Xem `tools/reports/b.md` |
-| B | B02–B09 | ⬜ | |
+| B | B02 | 🧪 | `--solutions` xanh 59/59 test (8 bài); 11/11 phép thử đột biến bị check bắt (2 đột biến đầu sống sót nên đã siết ex04/ex07); bài 📏 ex08 có số đo thật. Xem `tools/reports/b.md` |
+| B | B03–B09 | ⬜ | |
 | A | A01–A06 | ⬜ | |
 | P | P01–P09 | ⬜ | |
 | R | R01–R10 | ⬜ | |
