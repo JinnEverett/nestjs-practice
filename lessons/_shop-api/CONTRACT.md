@@ -133,10 +133,25 @@ Quy tắc giá (từ C03): phí ship `30000`, miễn phí khi tổng tiền hàn
 | Route nội bộ | `/v1/_trace`, `/v1/_scope`, `/v1/_reports/summary`, `/v1/legacy/**` (`@ApiExcludeController`) | C08–C11 |
 | Spec nằm trong `src/` | Q01, Q03, Q04 overlay các `*.spec.ts`; `tsc --noEmit` của module sau cũng biên dịch chúng: đổi chữ ký service/guard/interceptor thì overlay lại spec tương ứng | Q01, Q03, Q04 |
 
+### 6c. Bề mặt do B01 thêm (module sau — B02+, A01, R*, M* — tái dùng, đừng tạo song song)
+
+| Thứ | Đường dẫn / tên | Ghi chú |
+|---|---|---|
+| Kết nối DB | `src/database/database.module.ts` → `DatabaseModule` (import trong `AppModule`); `DataSource` của TypeORM được đăng ký **toàn cục** | `TypeOrmModule.forRootAsync` + `databaseConfig`; danh sách entity ở `ORM_ENTITIES` (module thêm entity phải thêm vào đó) |
+| Cấu hình DB | `src/config/database.config.ts` → `{ url, synchronize, logging, retryAttempts, retryDelay }` | `synchronize = (NODE_ENV !== 'production')` đến B03; `DB_LOGGING` (boolean) thêm vào `Env` và `.env.example` |
+| Entity (6 bảng) | `src/database/entities/<tên>.orm-entity.ts` → `ProductEntity, CategoryEntity, UserEntity, OrderEntity, OrderItemEntity, PaymentEntity` | tên **ORM**, tách khỏi lớp API `Product`/`Order` (swagger) trong `src/*/entities/*.entity.ts`; B06 bàn lại ranh giới này |
+| Tên bảng/cột | `products, categories, users, orders, order_items, payments`; cột snake_case (`category_id, created_at`…) | tiền `numeric(12,0)`, thời gian `timestamptz`; ràng buộc đặt tên `uq_<bảng>_<cột>`, `ck_<bảng>_<ý>`, (B02) `fk_<bảng>_<cột>` |
+| Tiền | `src/database/transformers.ts` → `moneyTransformer` (numeric ⇄ number, ném lỗi nếu vượt số nguyên an toàn), `MONEY_MAX = 999_999_999_999`, `INT4_MAX` | driver `pg` trả `numeric` là **chuỗi**; DTO có `@Max(MONEY_MAX)`/`@Max(INT4_MAX)` để trả 400 thay vì 500 |
+| Repository sản phẩm | `src/products/typeorm-products.repository.ts` → `TypeOrmProductsRepository` (cùng `ProductsRepository`); lỗi `23505` → `DuplicateSkuError` | `ProductsModule` import `TypeOrmModule.forFeature([ProductEntity])` |
+| Chưa có ở B01 | khóa ngoại/quan hệ (B02), đơn hàng trong DB (B05), migration (B03) | `OrdersService` vẫn dùng RAM |
+| Lưu ý Postgres 18 | mỗi cột `NOT NULL` cũng là một dòng trong `pg_constraint` (loại `n`) | lọc `contype <> 'n'` khi liệt kê ràng buộc |
+
 ## 7. Sổ đăng ký testkit (cập nhật khi thêm helper)
 
 | File | Export | Thêm bởi |
 |---|---|---|
 | `_kit.ts` | `createTestApp, http, sleep, fileExists, readSource, repoPath` | hạ tầng |
+| `_db.ts` | `DB_URL, dataSourceOf, userTables, resetDatabase, pgErrorCode, withEnv` | B01 |
+| `_src.ts` | `stripComments` | B01 |
 
 > Người soạn module thêm helper mới: tạo file `_shop-api/testkit/_<tên>.ts`, ghi vào bảng trên, và **không** đổi chữ ký các export cũ.

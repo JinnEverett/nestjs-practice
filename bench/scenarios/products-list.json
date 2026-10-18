@@ -1,0 +1,6 @@
+{
+  "method": "GET",
+  "path": "/v1/products?limit=20&sort=-price&maxPrice={{int:600000:900000000}}",
+  "headers": {},
+  "body": null
+}
